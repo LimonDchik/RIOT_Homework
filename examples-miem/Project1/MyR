@@ -1,0 +1,218 @@
+#define LCDA0 GPIO_PIN(PORT_C, 5)
+#define LCDRW GPIO_PIN(PORT_C, 6)
+#define LCDE GPIO_PIN(PORT_C, 8)
+#define LCDDB0 GPIO_PIN(PORT_A, 10)
+#define LCDDB1 GPIO_PIN(PORT_B, 3)
+#define LCDDB2 GPIO_PIN(PORT_B, 6)
+#define LCDDB3 GPIO_PIN(PORT_B, 4)
+#define LCDDB4 GPIO_PIN(PORT_B, 10)
+#define LCDDB5 GPIO_PIN(PORT_A, 8)
+#define LCDDB6 GPIO_PIN(PORT_A, 9)
+#define LCDDB7 GPIO_PIN(PORT_C, 7)
+
+#define	Len1	16	//Количество символов в первой строке индикатора
+#define	Len2	16	//Количество символов в второй строке индикатора
+const char Text1[Len1]={0x9B,'B','C','D','E','F','G','1','2','3','4','5','6','7','8','9'};
+const char Text2[Len2]={20,37,42,134,135,250,251,252,253,254,255,30,241,242,240,50};
+
+void LCDinit(void);
+void WriteCmd(uint8_t b);
+void WriteData(uint8_t b);
+void WriteByte(uint8_t b, uint8_t cd);
+void byte_to_GPIO(uint8_t myByte);
+
+
+
+void byte_to_GPIO(uint8_t myByte) {
+    // Бит 0
+    if (myByte & 0b00000001) {
+        gpio_set(LCDDB0);
+    } else {
+        gpio_clear(LCDDB0);
+    }
+    
+    // Бит 1
+    if (myByte & 0b00000010) {
+        gpio_set(LCDDB1);
+    } else {
+        gpio_clear(LCDDB1);
+    }
+    
+    // Бит 2
+    if (myByte & 0b00000100) {
+        gpio_set(LCDDB2);
+    } else {
+        gpio_clear(LCDDB2);
+    }
+    
+    // Бит 3
+    if (myByte & 0b00001000) {
+        gpio_set(LCDDB3);
+    } else {
+        gpio_clear(LCDDB3);
+    }
+    
+    // Бит 4
+    if (myByte & 0b00010000) {
+        gpio_set(LCDDB4);
+    } else {
+        gpio_clear(LCDDB4);
+    }
+    
+    // Бит 5
+    if (myByte & 0b00100000) {
+        gpio_set(LCDDB5);
+    } else {
+        gpio_clear(LCDDB5);
+    }
+    
+    // Бит 6
+    if (myByte & 0b01000000) {
+        gpio_set(LCDDB6);
+    } else {
+        gpio_clear(LCDDB6);
+    }
+    
+    // Бит 7
+    if (myByte & 0b10000000) {
+        gpio_set(LCDDB7);
+    } else {
+        gpio_clear(LCDDB7);
+    }
+}
+
+void LCDinit(void) {
+    gpio_init(LCDA0, GPIO_OUT);
+    gpio_init(LCDRW, GPIO_OUT);
+    gpio_init(LCDE, GPIO_OUT);
+    gpio_init(LCDDB0, GPIO_OUT);
+    gpio_init(LCDDB1, GPIO_OUT);
+    gpio_init(LCDDB2, GPIO_OUT);
+    gpio_init(LCDDB3, GPIO_OUT);
+    gpio_init(LCDDB4, GPIO_OUT);
+    gpio_init(LCDDB5, GPIO_OUT);
+    gpio_init(LCDDB6, GPIO_OUT);
+    gpio_init(LCDDB7, GPIO_OUT);
+    gpio_clear(LCDE);
+	xtimer_msleep(30);
+    gpio_clear(LCDRW);
+    gpio_clear(LCDA0);
+	byte_to_GPIO(0x30); 	
+    xtimer_usleep(1);
+    gpio_set(LCDE);
+    xtimer_usleep(1);
+	gpio_clear(LCDE);
+	xtimer_usleep(40);	
+	gpio_set(LCDE); 
+	xtimer_usleep(1);
+	gpio_clear(LCDE); 
+	xtimer_usleep(40);
+	gpio_set(LCDE);
+	xtimer_usleep(1);
+	gpio_clear(LCDE);
+	xtimer_usleep(1);
+	WriteCmd(0x38);		
+	WriteCmd(0x0C);		
+	WriteCmd(0x01);		
+	WriteCmd(0x06);		
+}
+
+void WriteCmd(uint8_t b) { 
+    WriteByte(b,0); 
+}
+
+void WriteData(uint8_t b) { 
+    WriteByte(b,1); 
+}
+
+void WriteByte(uint8_t b, uint8_t cd) {
+	gpio_set(LCDRW);
+	gpio_clear(LCDA0);
+	xtimer_usleep(1);
+	gpio_set(LCDE); 
+	xtimer_usleep(1);
+    xtimer_msleep(30);
+    gpio_clear(LCDE);
+	xtimer_usleep(1);	
+	gpio_clear(LCDRW); 
+    if (cd & 0b00000001) {
+        gpio_set(LCDA0);
+    } else {
+        gpio_clear(LCDA0);
+    }
+	byte_to_GPIO(b);
+	xtimer_usleep(1);		
+	gpio_set(LCDE); 
+	xtimer_usleep(1);	
+	gpio_clear(LCDE);
+	xtimer_usleep(1);	
+}
+
+int main(void) {
+    puts("Привет, Мир!");
+
+    gpio_init(ONBOARD_LED, GPIO_OUT);
+
+    /*gpio_init(LCDA0, GPIO_OUT);
+    gpio_init(LCDRW, GPIO_OUT);
+    gpio_init(LCDE, GPIO_OUT);
+    gpio_init(LCDDB0, GPIO_OUT);
+    gpio_init(LCDDB1, GPIO_OUT);
+    gpio_init(LCDDB2, GPIO_OUT);
+    gpio_init(LCDDB3, GPIO_OUT);
+    gpio_init(LCDDB4, GPIO_OUT);
+    gpio_init(LCDDB5, GPIO_OUT);
+    gpio_init(LCDDB6, GPIO_OUT);
+    gpio_init(LCDDB7, GPIO_OUT);*/
+    hd44780_init(&lcd, &lcd_params);
+    hd44780_display(&lcd, HD44780_ON);
+    hd44780_cursor(&lcd, HD44780_ON);
+    hd44780_blink(&lcd, HD44780_ON);
+    hd44780_clear(&lcd);
+    hd44780_set_cursor(&lcd, 0, 0);  /* колонка 0, строка 0 */
+    hd44780_print(&lcd, "Hello, RIOT!");
+    hd44780_set_cursor(&lcd, 0, 1);  /* колонка 0, строка 1 */
+    hd44780_print(&lcd, "MT-16S2H");
+    //LCDinit();
+    for (int i = 0; i < 10; i++) {
+        hd44780_set_cursor(&lcd, 0, 0);
+        char line1[17];
+        snprintf(line1, sizeof(line1), "Numbers: %d%d%d", i, i+1, i+2);
+        hd44780_print(&lcd, line1);
+
+        hd44780_set_cursor(&lcd, 0, 1);
+        char line2[17];
+        snprintf(line2, sizeof(line2), "Chars: %c%c%c", 'A'+i, 'B'+i, 'C'+i);
+        hd44780_print(&lcd, line2);
+    }
+    /* Финальный вывод */
+    hd44780_set_cursor(&lcd, 0, 0);
+    hd44780_print(&lcd, "RIOT HD44780 OK");
+
+    hd44780_set_cursor(&lcd, 0, 1);
+    hd44780_print(&lcd, "16x2 Display");
+
+    //gpio_set(ONBOARD_LED);
+    //gpio_clear(ONBOARD_LED);
+
+    /*WriteCmd(0x80);
+	for(int i=0;i<Len1;i++) { WriteData(Text1[i]);  }
+	WriteCmd(0x80+0x40);	//Установка курсора в начало второй строки индикатора
+	for(int i=0;i<Len2;i++) { WriteData(Text2[i]); }
+    xtimer_msleep(2000);
+    WriteCmd(0x80);
+    char Text3[Len1] = {0x0B,'B','C','D','E','F','G','1','2','3','4','5','6','7','8','9'};
+    for(int i=0;i<Len1;i++) { WriteData(Text3[i]);  }
+    WriteCmd(0x80);
+    //WriteCmd(0x01);*/
+
+    while(1) {
+
+        gpio_set(ONBOARD_LED);
+        xtimer_msleep(3000);
+        gpio_clear(ONBOARD_LED);
+        xtimer_msleep(3000);
+    }
+
+    return 0;
+}
