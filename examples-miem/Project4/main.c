@@ -59,11 +59,11 @@ int zero_cross_at(int* ar, int start, int length){
     int new_num = 0;//Значение для определения направления сигнала
     int cross = 0;//Количество пресечений
     
-    for (int freq = 5; freq < 20; freq++) {
+    for (int freq = 8; freq < 14; freq++) {
         counts = ADC_FREQ / freq; 
         window = (int)(counts * PERIODS);
         
-        ////Проверяем, что хватает данных от start до конца массива
+        //Проверяем, что хватает данных от start до конца массива
         //if (start + window > length) {
         //    continue;
         //}
